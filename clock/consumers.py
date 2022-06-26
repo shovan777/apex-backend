@@ -2,6 +2,7 @@ import json
 
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.utils.timezone import localtime, now
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 class ClockConsumer(AsyncWebsocketConsumer):
@@ -32,17 +33,27 @@ class ClockConsumer(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
+        # message = text_data_json["message"]
         # message = "Hello my friend"
-
-        # Send message to clock room
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                "type": "check_clock",
-                "message": message,
-            },
-        )
+        if "message" in text_data_json:
+            message = text_data_json["message"]
+            # Send message to clock room
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "check_clock",
+                    "message": message,
+                },
+            )
+        elif "token" in text_data_json:
+            token = text_data_json["token"]
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "get_user_from_token",
+                    "token": token,
+                },
+            )
 
     def get_current_time(self):
         return str(localtime(now()))
@@ -81,3 +92,20 @@ class ClockConsumer(AsyncWebsocketConsumer):
                 {"session_status": message, "cur_time": self.get_current_time()}
             )
         )
+
+    async def get_user_from_token(self, event):
+        token = event["token"]
+        auth = JWTAuthentication()
+        try:
+            valid_data = auth.get_validated_token(token)
+            # Send user id to WebSocket
+            response = {
+                "user_id": valid_data["user_id"],
+                "cur_time": self.get_current_time(),
+            }
+
+        except Exception as e:
+            print(e)
+            response = {"user": "", "error": "Invalid Token"}
+
+        await self.send(text_data=json.dumps(response))
