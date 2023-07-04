@@ -104,7 +104,7 @@ while tail:
 
 
 water = ListNode(val=1)
-# water = ListNode(2, water)
+water = ListNode(2, water)
 # water = ListNode(2, water)
 # water = ListNode(1, water)
 sol = Solution()
