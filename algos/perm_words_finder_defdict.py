@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 
 
@@ -9,12 +10,9 @@ def findSubstring(s: str, words: List[str]) -> List[int]:
     idx_arr = []
 
     def count_words(word_list):
-        count_dict = {}
+        count_dict = defaultdict(int)
         for word in words:
-            if word in count_dict.keys():
-                count_dict[word] += 1
-                continue
-            count_dict[word] = 1
+            count_dict[word] += 1
         return count_dict
 
     words_count = count_words(words)
@@ -27,36 +25,23 @@ def findSubstring(s: str, words: List[str]) -> List[int]:
         possible_seq = s[i : i + seq_len]
         is_valid = True
         # print(f'possible valid seq: {possible_seq}')
-        seq_count = {}
+        seq_count = defaultdict(int)
         for j in range(0, len(possible_seq), word_len):
             word = possible_seq[j : j + word_len]
-            if word in seq_count.keys():
-                seq_count[word] += 1
-                continue
-            seq_count[word] = 1
+            seq_count[word] += 1
             if word not in words:
                 is_valid = False
                 break
         if not is_valid:
             continue
-        # for word in words:
-        #     if word not in seq_count.keys():
-        #         is_valid = False
-        #         break
-        #     if words_count[word] != seq_count[word]:
-        #         is_valid = False
-        #         break
-
         if seq_count == words_count:
-            # is_valid = False
-            # if is_valid:
             idx_arr.append(i)
     return idx_arr
 
 
 # passed
-words = ["word", "good", "best", "word"]
-s = "wordgoodgoodgoodbestword"
+# words = ["word","good","best","word"]
+# s = "wordgoodgoodgoodbestword"
 s = "barfoothefoobarman"
 # s = "barfoobarfoobarman"
 words = ["foo", "bar"]
